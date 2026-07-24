@@ -1,40 +1,60 @@
 {
   "files_created": [
-    "package.json",
-    "tsconfig.json",
-    "vite.config.ts",
-    "eslint.config.js",
-    ".prettierrc.json",
-    ".prettierignore",
-    ".github/workflows/ci.yml",
-    "src/main.ts"
+    "jest.config.cjs",
+    "src/types/engine.types.ts",
+    "src/utils/CoordinateTransform.ts",
+    "src/engine/Grid.ts",
+    "src/engine/Viewport.ts",
+    "src/engine/CanvasEngine.ts",
+    "src/utils/__tests__/CoordinateTransform.test.ts",
+    "src/engine/__tests__/Grid.test.ts"
   ],
   "files_modified": [
-    "README.md"
+    "package.json",
+    "src/main.ts"
   ],
   "decisions": [
     {
-      "what": "Skipped task 001 (.gitignore) — left the existing pre-existing infra .gitignore file untouched",
-      "why": "Session instructions explicitly said to ignore changes to .gitignore and other setup/infra files (do not modify, revert, or discuss)."
+      "what": "jest config uses ts-jest preset and jsdom test environment",
+      "why": "Spec explicitly requires ts-jest preset and jsdom for DOM APIs; coverage thresholds set to 90 as specified."
     },
     {
-      "what": "Used @typescript-eslint/parser + @typescript-eslint/eslint-plugin (v7) directly instead of the newer typescript-eslint umbrella package",
-      "why": "The package.json specification explicitly names @typescript-eslint/parser and @typescript-eslint/eslint-plugin as required devDependencies."
+      "what": "moduleNameMapper aligned with tsconfig paths",
+      "why": "tsconfig.json declares '@/*': ['./src/*']; Jest needs the equivalent mapper so alias imports resolve during tests."
     },
     {
-      "what": "Used PixiJS 8.x async init pattern (new Application(); await app.init({...}); document.body.appendChild(app.canvas))",
-      "why": "PixiJS 8 changed Application construction to require async init; the spec references PixiJS 8.x and instructs to use async/await if needed."
+      "what": "CoordinateTransform validates cellSize via a shared private helper",
+      "why": "Spec requires input validation with an error on non-positive cellSize; extracting the check avoids duplication across the two methods."
     },
     {
-      "what": "Added an inline eslint-disable-next-line no-console before the console.log in src/main.ts",
-      "why": "The spec requires a console.log confirmation, but eslint.config.js sets no-console to warn — the disable keeps the intentional init log clean under lint."
+      "what": "Grid extends PixiJS v8 Graphics and uses a single stroke() call after batching moveTo/lineTo",
+      "why": "PixiJS v8 uses the moveTo/lineTo + stroke({width,color}) API; one stroke per render keeps GPU submissions minimal."
+    },
+    {
+      "what": "Grid culls off-screen lines by computing world bounds from viewport offset/scale",
+      "why": "Spec requires only visible grid cells to be rendered; startCol/endCol/startRow/endRow are derived from the viewport-transformed canvas bounds."
+    },
+    {
+      "what": "Viewport clamps scale to [0.5, 3.0] and emits change events via a Set of listeners",
+      "why": "Spec explicitly specifies the clamp range and asks for a callback pattern for state changes."
+    },
+    {
+      "what": "CanvasEngine stores bound handler references",
+      "why": "Needed so destroy() can remove the exact listener references it registered on the ticker, stage, and window."
+    },
+    {
+      "what": "main.ts wraps engine.init() in a try/catch and logs success",
+      "why": "Spec explicitly requires error handling with console.error and a success log line."
+    },
+    {
+      "what": "Grid tests use jest.spyOn on instance methods",
+      "why": "Spec asks for mocking Graphics methods to verify moveTo/lineTo call counts; instance spies avoid polluting the shared prototype across tests."
     }
   ],
   "tools_used": [
     "Read",
     "Write",
-    "Bash",
-    "Grep",
-    "Glob"
+    "Edit",
+    "Bash"
   ]
 }
