@@ -40,6 +40,44 @@ async function init(): Promise<void> {
       scale: 1,
     });
 
+    // Demo: load a placeholder spritesheet and create an animated sprite.
+    // The Unsplash image is a stand-in for a real 128x32 walk-cycle atlas —
+    // a production build would ship a purpose-designed spritesheet asset.
+    const animationManager = engine.getAnimationManager();
+    let animatedSpriteId: string | undefined;
+    try {
+      await animationManager.loadSpritesheet('test-walk', {
+        textureUrl:
+          'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=128&h=32&fit=crop',
+        dataUrl: '/assets/test-spritesheet.json',
+      });
+      animationManager.defineClip('test-walk', {
+        name: 'walk',
+        frames: ['walk-0.png', 'walk-1.png', 'walk-2.png', 'walk-3.png'],
+        frameRate: 8,
+        loop: true,
+      });
+      animatedSpriteId = await animationManager.createAnimatedSprite({
+        spritesheetKey: 'test-walk',
+        initialClip: 'walk',
+        layerName: DefaultLayers.Entities,
+        x: 300,
+        y: 200,
+        scale: 2,
+        autoPlay: true,
+      });
+      // eslint-disable-next-line no-console
+      console.log('Animated sprite id:', animatedSpriteId);
+      // eslint-disable-next-line no-console
+      console.log(
+        'Animation state:',
+        animationManager.getAnimationState(animatedSpriteId)
+      );
+    } catch (animationError) {
+      // eslint-disable-next-line no-console
+      console.warn('Animated sprite demo skipped:', animationError);
+    }
+
     // eslint-disable-next-line no-console
     console.log('CanvasEngine initialized successfully');
     // eslint-disable-next-line no-console

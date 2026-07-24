@@ -1,0 +1,33 @@
+{
+  "frames": {
+    "walk-0.png": {
+      "frame": { "x": 0, "y": 0, "w": 32, "h": 32 },
+      "sourceSize": { "w": 32, "h": 32 },
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 }
+    },
+    "walk-1.png": {
+      "frame": { "x": 32, "y": 0, "w": 32, "h": 32 },
+      "sourceSize": { "w": 32, "h": 32 },
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 }
+    },
+    "walk-2.png": {
+      "frame": { "x": 64, "y": 0, "w": 32, "h": 32 },
+      "sourceSize": { "w": 32, "h": 32 },
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 }
+    },
+    "walk-3.png": {
+      "frame": { "x": 96, "y": 0, "w": 32, "h": 32 },
+      "sourceSize": { "w": 32, "h": 32 },
+      "spriteSourceSize": { "x": 0, "y": 0, "w": 32, "h": 32 }
+    }
+  },
+  "meta": {
+    "image": "test-spritesheet.png",
+    "format": "RGBA8888",
+    "size": { "w": 128, "h": 32 },
+    "scale": 1
+  },
+  "animations": {
+    "walk": ["walk-0.png", "walk-1.png", "walk-2.png", "walk-3.png"]
+  }
+}

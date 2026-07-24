@@ -6,6 +6,7 @@ import { LayerManager } from '@/engine/LayerManager';
 import { DefaultLayers } from '@/types/layer.types';
 import { TextureCache } from '@/engine/TextureCache';
 import { SpriteManager } from '@/engine/SpriteManager';
+import { AnimationManager } from '@/engine/AnimationManager';
 
 const DEFAULT_GRID_CONFIG: Omit<GridConfig, 'cellSize'> = {
   lineColor: 0x2a2a4a,
@@ -27,6 +28,7 @@ export class CanvasEngine {
   private layerManager: LayerManager | null = null;
   private textureCache: TextureCache | null = null;
   private spriteManager: SpriteManager | null = null;
+  private animationManager: AnimationManager | null = null;
 
   private initialized = false;
   private isDragging = false;
@@ -80,6 +82,7 @@ export class CanvasEngine {
 
     this.textureCache = new TextureCache();
     this.spriteManager = new SpriteManager(this.textureCache, this.layerManager);
+    this.animationManager = new AnimationManager(this.layerManager);
 
     const backgroundLayer = this.layerManager.getLayer(DefaultLayers.Background);
     if (backgroundLayer) {
@@ -193,6 +196,19 @@ export class CanvasEngine {
     return this.textureCache;
   }
 
+  /**
+   * Get the AnimationManager. Only available after {@link init} has been
+   * called; throws if accessed before initialization.
+   */
+  public getAnimationManager(): AnimationManager {
+    if (!this.animationManager) {
+      throw new Error(
+        'CanvasEngine.getAnimationManager(): engine has not been initialized. Call init() first.'
+      );
+    }
+    return this.animationManager;
+  }
+
   /** Tear down PixiJS resources and detach event listeners. */
   public destroy(): void {
     if (!this.initialized) {
@@ -209,6 +225,9 @@ export class CanvasEngine {
     this.app.stage.off('pointerup', this.boundPointerUp);
     this.app.stage.off('pointerupoutside', this.boundPointerUp);
 
+    if (this.animationManager) {
+      this.animationManager.clear();
+    }
     if (this.spriteManager) {
       this.spriteManager.clear();
     }
@@ -219,6 +238,7 @@ export class CanvasEngine {
     this.grid.destroy();
     this.world.destroy({ children: true });
     this.app.destroy(true, { children: true });
+    this.animationManager = null;
     this.spriteManager = null;
     this.textureCache = null;
     this.layerManager = null;
