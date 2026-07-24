@@ -1,0 +1,40 @@
+{
+  "files_created": [
+    "package.json",
+    "tsconfig.json",
+    "vite.config.ts",
+    "eslint.config.js",
+    ".prettierrc.json",
+    ".prettierignore",
+    ".github/workflows/ci.yml",
+    "src/main.ts"
+  ],
+  "files_modified": [
+    "README.md"
+  ],
+  "decisions": [
+    {
+      "what": "Skipped task 001 (.gitignore) — left the existing pre-existing infra .gitignore file untouched",
+      "why": "Session instructions explicitly said to ignore changes to .gitignore and other setup/infra files (do not modify, revert, or discuss)."
+    },
+    {
+      "what": "Used @typescript-eslint/parser + @typescript-eslint/eslint-plugin (v7) directly instead of the newer typescript-eslint umbrella package",
+      "why": "The package.json specification explicitly names @typescript-eslint/parser and @typescript-eslint/eslint-plugin as required devDependencies."
+    },
+    {
+      "what": "Used PixiJS 8.x async init pattern (new Application(); await app.init({...}); document.body.appendChild(app.canvas))",
+      "why": "PixiJS 8 changed Application construction to require async init; the spec references PixiJS 8.x and instructs to use async/await if needed."
+    },
+    {
+      "what": "Added an inline eslint-disable-next-line no-console before the console.log in src/main.ts",
+      "why": "The spec requires a console.log confirmation, but eslint.config.js sets no-console to warn — the disable keeps the intentional init log clean under lint."
+    }
+  ],
+  "tools_used": [
+    "Read",
+    "Write",
+    "Bash",
+    "Grep",
+    "Glob"
+  ]
+}
