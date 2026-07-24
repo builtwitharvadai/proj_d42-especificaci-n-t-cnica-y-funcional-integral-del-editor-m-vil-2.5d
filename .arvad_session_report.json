@@ -1,11 +1,10 @@
 {
   "files_created": [
-    "src/types/sprite.types.ts",
-    "src/engine/TextureCache.ts",
-    "src/engine/SpriteManager.ts",
-    "src/engine/__tests__/TextureCache.test.ts",
-    "src/engine/__tests__/SpriteManager.test.ts",
-    "src/engine/__tests__/SpriteRendering.integration.test.ts"
+    "src/types/animation.types.ts",
+    "src/engine/AnimationManager.ts",
+    "public/assets/test-spritesheet.json",
+    "src/engine/__tests__/AnimationManager.test.ts",
+    "src/engine/__tests__/Animation.integration.test.ts"
   ],
   "files_modified": [
     "src/engine/CanvasEngine.ts",
@@ -13,30 +12,28 @@
   ],
   "decisions": [
     {
-      "what": "Track sprite metadata in a parallel Map<SpriteId, SpriteMetadata> inside SpriteManager",
-      "why": "Metadata like layerName, textureKey, and the scalar scale are not directly recoverable from a Pixi Sprite; the shadow map keeps getAllSprites() accurate without extra bookkeeping in callers."
+      "what": "Added an internal defineClip() method and spriteSpritesheets map to AnimationManager",
+      "why": "The spec requires AnimatedSprite instances built from spritesheet clip frames and clip switching by name, so clips must be registerable per spritesheet and each sprite must remember which spritesheet owns its clips."
     },
     {
-      "what": "TextureCache placeholder built from a 1x1 magenta HTMLCanvasElement",
-      "why": "Spec asks for a 1x1 magenta placeholder created in the constructor; a canvas-backed Texture works in browsers and jsdom, with Texture.EMPTY as a safety fallback."
+      "what": "Wired AnimationManager into CanvasEngine.init() and destroy() alongside SpriteManager",
+      "why": "Spec required a getAnimationManager() accessor and cleanup of animated sprites during destroy() while preserving existing manager wiring."
     },
     {
-      "what": "SpriteManager.loadTexture uses textureKey as both key and url",
-      "why": "SpriteConfig only carries textureKey; treating it as the URL lets the same key drive cache lookup and network fetch without introducing another field."
+      "what": "In main.ts, wrapped the animation demo in its own try/catch and defined the walk clip before creating the animated sprite",
+      "why": "The placeholder Unsplash texture is unlikely to decode as a real atlas, so the demo must degrade gracefully without blocking the rest of the engine boot; defining the clip is required before AnimationManager.createAnimatedSprite will succeed."
     },
     {
-      "what": "Integration tests stub Application.init and mock Assets.load",
-      "why": "PixiJS Application requires WebGL and Assets fetches over the network; stubbing them mirrors the existing CanvasEngine integration test and keeps the sprite pipeline exercised end-to-end under jsdom."
-    },
-    {
-      "what": "CanvasEngine.destroy clears sprites and texture cache before tearing down Pixi resources",
-      "why": "Spec requires destroy() to clean up the sprite/texture systems in addition to the existing engine teardown."
+      "what": "Mocked Assets.load and Spritesheet.prototype.parse via jest.spyOn in the tests",
+      "why": "PixiJS 8 loads real GPU/WebGL resources by default; jsdom cannot host them, so the atlas parsing is stubbed to inject Texture.EMPTY frames while still exercising real AnimatedSprite instances."
     }
   ],
   "tools_used": [
     "Read",
     "Write",
     "Edit",
-    "Grep"
+    "Bash",
+    "Grep",
+    "Glob"
   ]
 }
