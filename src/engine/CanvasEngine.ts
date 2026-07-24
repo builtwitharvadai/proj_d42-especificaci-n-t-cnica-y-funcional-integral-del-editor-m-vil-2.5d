@@ -4,6 +4,8 @@ import { Grid } from '@/engine/Grid';
 import { Viewport } from '@/engine/Viewport';
 import { LayerManager } from '@/engine/LayerManager';
 import { DefaultLayers } from '@/types/layer.types';
+import { TextureCache } from '@/engine/TextureCache';
+import { SpriteManager } from '@/engine/SpriteManager';
 
 const DEFAULT_GRID_CONFIG: Omit<GridConfig, 'cellSize'> = {
   lineColor: 0x2a2a4a,
@@ -23,6 +25,8 @@ export class CanvasEngine {
   private readonly world: Container;
   private readonly grid: Grid;
   private layerManager: LayerManager | null = null;
+  private textureCache: TextureCache | null = null;
+  private spriteManager: SpriteManager | null = null;
 
   private initialized = false;
   private isDragging = false;
@@ -73,6 +77,9 @@ export class CanvasEngine {
 
     this.layerManager = new LayerManager(this.world);
     this.layerManager.initializeDefaultLayers();
+
+    this.textureCache = new TextureCache();
+    this.spriteManager = new SpriteManager(this.textureCache, this.layerManager);
 
     const backgroundLayer = this.layerManager.getLayer(DefaultLayers.Background);
     if (backgroundLayer) {
@@ -160,6 +167,32 @@ export class CanvasEngine {
     return this.layerManager;
   }
 
+  /**
+   * Get the SpriteManager. Only available after {@link init} has been called;
+   * throws if accessed before initialization.
+   */
+  public getSpriteManager(): SpriteManager {
+    if (!this.spriteManager) {
+      throw new Error(
+        'CanvasEngine.getSpriteManager(): engine has not been initialized. Call init() first.'
+      );
+    }
+    return this.spriteManager;
+  }
+
+  /**
+   * Get the TextureCache. Only available after {@link init} has been called;
+   * throws if accessed before initialization.
+   */
+  public getTextureCache(): TextureCache {
+    if (!this.textureCache) {
+      throw new Error(
+        'CanvasEngine.getTextureCache(): engine has not been initialized. Call init() first.'
+      );
+    }
+    return this.textureCache;
+  }
+
   /** Tear down PixiJS resources and detach event listeners. */
   public destroy(): void {
     if (!this.initialized) {
@@ -176,9 +209,18 @@ export class CanvasEngine {
     this.app.stage.off('pointerup', this.boundPointerUp);
     this.app.stage.off('pointerupoutside', this.boundPointerUp);
 
+    if (this.spriteManager) {
+      this.spriteManager.clear();
+    }
+    if (this.textureCache) {
+      this.textureCache.clearCache();
+    }
+
     this.grid.destroy();
     this.world.destroy({ children: true });
     this.app.destroy(true, { children: true });
+    this.spriteManager = null;
+    this.textureCache = null;
     this.layerManager = null;
     this.initialized = false;
   }
