@@ -2,6 +2,8 @@ import { Application, Container, type FederatedPointerEvent } from 'pixi.js';
 import type { EngineConfig, GridConfig } from '@/types/engine.types';
 import { Grid } from '@/engine/Grid';
 import { Viewport } from '@/engine/Viewport';
+import { LayerManager } from '@/engine/LayerManager';
+import { DefaultLayers } from '@/types/layer.types';
 
 const DEFAULT_GRID_CONFIG: Omit<GridConfig, 'cellSize'> = {
   lineColor: 0x2a2a4a,
@@ -10,7 +12,8 @@ const DEFAULT_GRID_CONFIG: Omit<GridConfig, 'cellSize'> = {
 
 /**
  * CanvasEngine wires a PixiJS Application together with a grid overlay,
- * a viewport (pan/zoom camera), and pointer input for drag-panning.
+ * a viewport (pan/zoom camera), pointer input for drag-panning, and a
+ * multi-layer rendering pipeline managed by {@link LayerManager}.
  */
 export class CanvasEngine {
   private readonly engineConfig: EngineConfig;
@@ -19,6 +22,7 @@ export class CanvasEngine {
   private readonly viewport: Viewport;
   private readonly world: Container;
   private readonly grid: Grid;
+  private layerManager: LayerManager | null = null;
 
   private initialized = false;
   private isDragging = false;
@@ -65,8 +69,15 @@ export class CanvasEngine {
       resizeTo: typeof window !== 'undefined' ? window : undefined,
     });
 
-    this.world.addChild(this.grid);
     this.app.stage.addChild(this.world);
+
+    this.layerManager = new LayerManager(this.world);
+    this.layerManager.initializeDefaultLayers();
+
+    const backgroundLayer = this.layerManager.getLayer(DefaultLayers.Background);
+    if (backgroundLayer) {
+      backgroundLayer.addChild(this.grid);
+    }
 
     this.app.stage.eventMode = 'static';
     this.app.stage.hitArea = this.app.screen;
@@ -136,6 +147,19 @@ export class CanvasEngine {
     return this.app.canvas;
   }
 
+  /**
+   * Get the LayerManager. Only available after {@link init} has been called;
+   * throws if accessed before initialization.
+   */
+  public getLayerManager(): LayerManager {
+    if (!this.layerManager) {
+      throw new Error(
+        'CanvasEngine.getLayerManager(): engine has not been initialized. Call init() first.'
+      );
+    }
+    return this.layerManager;
+  }
+
   /** Tear down PixiJS resources and detach event listeners. */
   public destroy(): void {
     if (!this.initialized) {
@@ -155,6 +179,7 @@ export class CanvasEngine {
     this.grid.destroy();
     this.world.destroy({ children: true });
     this.app.destroy(true, { children: true });
+    this.layerManager = null;
     this.initialized = false;
   }
 

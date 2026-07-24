@@ -1,60 +1,43 @@
 {
   "files_created": [
-    "jest.config.cjs",
-    "src/types/engine.types.ts",
-    "src/utils/CoordinateTransform.ts",
-    "src/engine/Grid.ts",
-    "src/engine/Viewport.ts",
-    "src/engine/CanvasEngine.ts",
-    "src/utils/__tests__/CoordinateTransform.test.ts",
-    "src/engine/__tests__/Grid.test.ts"
+    "src/types/layer.types.ts",
+    "src/engine/LayerManager.ts",
+    "src/engine/__tests__/LayerManager.test.ts",
+    "src/engine/__tests__/CanvasEngine.integration.test.ts"
   ],
   "files_modified": [
-    "package.json",
+    "src/engine/CanvasEngine.ts",
     "src/main.ts"
   ],
   "decisions": [
     {
-      "what": "jest config uses ts-jest preset and jsdom test environment",
-      "why": "Spec explicitly requires ts-jest preset and jsdom for DOM APIs; coverage thresholds set to 90 as specified."
+      "what": "Type definitions for LayerConfig, LayerMetadata, DefaultLayers enum, and DEFAULT_LAYER_CONFIGS array",
+      "why": "Foundation task that defines the contract used by LayerManager, CanvasEngine, main.ts, and both test files."
     },
     {
-      "what": "moduleNameMapper aligned with tsconfig paths",
-      "why": "tsconfig.json declares '@/*': ['./src/*']; Jest needs the equivalent mapper so alias imports resolve during tests."
+      "what": "LayerManager warns via console.warn (with lint-disable) rather than throwing on duplicate/missing layers",
+      "why": "Spec explicitly says to 'emit warnings for duplicate layer names' and use validation; throwing would break existing engine initialization paths."
     },
     {
-      "what": "CoordinateTransform validates cellSize via a shared private helper",
-      "why": "Spec requires input validation with an error on non-positive cellSize; extracting the check avoids duplication across the two methods."
+      "what": "CanvasEngine stores LayerManager as nullable and creates it in init() after building the world container",
+      "why": "Matches spec ('after creating main container, instantiate LayerManager') and preserves existing init/destroy semantics."
     },
     {
-      "what": "Grid extends PixiJS v8 Graphics and uses a single stroke() call after batching moveTo/lineTo",
-      "why": "PixiJS v8 uses the moveTo/lineTo + stroke({width,color}) API; one stroke per render keeps GPU submissions minimal."
+      "what": "CanvasEngine adds Grid to the background layer instead of directly to world",
+      "why": "Explicit spec requirement for multi-layer rendering to work with z-ordering."
     },
     {
-      "what": "Grid culls off-screen lines by computing world bounds from viewport offset/scale",
-      "why": "Spec requires only visible grid cells to be rendered; startCol/endCol/startRow/endRow are derived from the viewport-transformed canvas bounds."
+      "what": "getLayerManager() throws if called pre-init",
+      "why": "Avoids silent null-dereference bugs and gives an actionable error under strict TypeScript."
     },
     {
-      "what": "Viewport clamps scale to [0.5, 3.0] and emits change events via a Set of listeners",
-      "why": "Spec explicitly specifies the clamp range and asks for a callback pattern for state changes."
+      "what": "CanvasEngine integration test mocks Application.prototype.init and destroy",
+      "why": "jsdom cannot provide a WebGL context, so PixiJS Application.init() would fail; stubbing lets us exercise the real CanvasEngine wiring."
     },
     {
-      "what": "CanvasEngine stores bound handler references",
-      "why": "Needed so destroy() can remove the exact listener references it registered on the ticker, stage, and window."
-    },
-    {
-      "what": "main.ts wraps engine.init() in a try/catch and logs success",
-      "why": "Spec explicitly requires error handling with console.error and a success log line."
-    },
-    {
-      "what": "Grid tests use jest.spyOn on instance methods",
-      "why": "Spec asks for mocking Graphics methods to verify moveTo/lineTo call counts; instance spies avoid polluting the shared prototype across tests."
+      "what": "main.ts uses Graphics.rect(...).fill(...) API for test sprites",
+      "why": "Matches PixiJS v8 API declared in package.json (pixi.js ^8.0.0)."
     }
   ],
-  "tools_used": [
-    "Read",
-    "Write",
-    "Edit",
-    "Bash"
-  ]
+  "tools_used": ["Read", "Write", "Edit", "Grep"]
 }
