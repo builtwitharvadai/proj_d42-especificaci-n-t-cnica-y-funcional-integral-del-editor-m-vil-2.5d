@@ -1,4 +1,3 @@
-import { Graphics } from 'pixi.js';
 import { CanvasEngine } from '@/engine/CanvasEngine';
 import type { EngineConfig } from '@/types/engine.types';
 import { DefaultLayers } from '@/types/layer.types';
@@ -12,35 +11,45 @@ const engineConfig: EngineConfig = {
 
 const engine = new CanvasEngine(engineConfig);
 
-function createRect(color: number, width: number, height: number): Graphics {
-  const g = new Graphics();
-  g.rect(0, 0, width, height).fill({ color });
-  return g;
-}
+const BACKGROUND_TEXTURE_URL =
+  'https://images.unsplash.com/photo-1557683316-973673baf926?w=400&h=300';
+const CHARACTER_TEXTURE_URL =
+  'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=200&h=200';
 
 async function init(): Promise<void> {
   try {
     await engine.init();
     document.body.appendChild(engine.getCanvas());
 
-    const layerManager = engine.getLayerManager();
+    const spriteManager = engine.getSpriteManager();
+    const textureCache = engine.getTextureCache();
 
-    const red = createRect(0xff0000, 50, 50);
-    red.position.set(100, 100);
-    layerManager.getLayer(DefaultLayers.Background)?.addChild(red);
+    const backgroundSpriteId = await spriteManager.createSprite({
+      textureKey: BACKGROUND_TEXTURE_URL,
+      layerName: DefaultLayers.Background,
+      x: 0,
+      y: 0,
+      scale: 2,
+    });
 
-    const green = createRect(0x00ff00, 50, 50);
-    green.position.set(110, 110);
-    layerManager.getLayer(DefaultLayers.Entities)?.addChild(green);
-
-    const blue = createRect(0x0000ff, 50, 50);
-    blue.position.set(120, 120);
-    layerManager.getLayer(DefaultLayers.UI)?.addChild(blue);
+    const characterSpriteId = await spriteManager.createSprite({
+      textureKey: CHARACTER_TEXTURE_URL,
+      layerName: DefaultLayers.Entities,
+      x: 150,
+      y: 150,
+      scale: 1,
+    });
 
     // eslint-disable-next-line no-console
     console.log('CanvasEngine initialized successfully');
     // eslint-disable-next-line no-console
-    console.log('Layer metadata:', layerManager.getAllLayers());
+    console.log('Background sprite id:', backgroundSpriteId);
+    // eslint-disable-next-line no-console
+    console.log('Character sprite id:', characterSpriteId);
+    // eslint-disable-next-line no-console
+    console.log('Texture cache stats:', textureCache.getCacheStats());
+    // eslint-disable-next-line no-console
+    console.log('Layer metadata:', engine.getLayerManager().getAllLayers());
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Failed to initialize CanvasEngine:', error);

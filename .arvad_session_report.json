@@ -1,9 +1,11 @@
 {
   "files_created": [
-    "src/types/layer.types.ts",
-    "src/engine/LayerManager.ts",
-    "src/engine/__tests__/LayerManager.test.ts",
-    "src/engine/__tests__/CanvasEngine.integration.test.ts"
+    "src/types/sprite.types.ts",
+    "src/engine/TextureCache.ts",
+    "src/engine/SpriteManager.ts",
+    "src/engine/__tests__/TextureCache.test.ts",
+    "src/engine/__tests__/SpriteManager.test.ts",
+    "src/engine/__tests__/SpriteRendering.integration.test.ts"
   ],
   "files_modified": [
     "src/engine/CanvasEngine.ts",
@@ -11,33 +13,30 @@
   ],
   "decisions": [
     {
-      "what": "Type definitions for LayerConfig, LayerMetadata, DefaultLayers enum, and DEFAULT_LAYER_CONFIGS array",
-      "why": "Foundation task that defines the contract used by LayerManager, CanvasEngine, main.ts, and both test files."
+      "what": "Track sprite metadata in a parallel Map<SpriteId, SpriteMetadata> inside SpriteManager",
+      "why": "Metadata like layerName, textureKey, and the scalar scale are not directly recoverable from a Pixi Sprite; the shadow map keeps getAllSprites() accurate without extra bookkeeping in callers."
     },
     {
-      "what": "LayerManager warns via console.warn (with lint-disable) rather than throwing on duplicate/missing layers",
-      "why": "Spec explicitly says to 'emit warnings for duplicate layer names' and use validation; throwing would break existing engine initialization paths."
+      "what": "TextureCache placeholder built from a 1x1 magenta HTMLCanvasElement",
+      "why": "Spec asks for a 1x1 magenta placeholder created in the constructor; a canvas-backed Texture works in browsers and jsdom, with Texture.EMPTY as a safety fallback."
     },
     {
-      "what": "CanvasEngine stores LayerManager as nullable and creates it in init() after building the world container",
-      "why": "Matches spec ('after creating main container, instantiate LayerManager') and preserves existing init/destroy semantics."
+      "what": "SpriteManager.loadTexture uses textureKey as both key and url",
+      "why": "SpriteConfig only carries textureKey; treating it as the URL lets the same key drive cache lookup and network fetch without introducing another field."
     },
     {
-      "what": "CanvasEngine adds Grid to the background layer instead of directly to world",
-      "why": "Explicit spec requirement for multi-layer rendering to work with z-ordering."
+      "what": "Integration tests stub Application.init and mock Assets.load",
+      "why": "PixiJS Application requires WebGL and Assets fetches over the network; stubbing them mirrors the existing CanvasEngine integration test and keeps the sprite pipeline exercised end-to-end under jsdom."
     },
     {
-      "what": "getLayerManager() throws if called pre-init",
-      "why": "Avoids silent null-dereference bugs and gives an actionable error under strict TypeScript."
-    },
-    {
-      "what": "CanvasEngine integration test mocks Application.prototype.init and destroy",
-      "why": "jsdom cannot provide a WebGL context, so PixiJS Application.init() would fail; stubbing lets us exercise the real CanvasEngine wiring."
-    },
-    {
-      "what": "main.ts uses Graphics.rect(...).fill(...) API for test sprites",
-      "why": "Matches PixiJS v8 API declared in package.json (pixi.js ^8.0.0)."
+      "what": "CanvasEngine.destroy clears sprites and texture cache before tearing down Pixi resources",
+      "why": "Spec requires destroy() to clean up the sprite/texture systems in addition to the existing engine teardown."
     }
   ],
-  "tools_used": ["Read", "Write", "Edit", "Grep"]
+  "tools_used": [
+    "Read",
+    "Write",
+    "Edit",
+    "Grep"
+  ]
 }
