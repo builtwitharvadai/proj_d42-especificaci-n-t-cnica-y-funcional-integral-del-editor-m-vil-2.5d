@@ -1,0 +1,2 @@
+# proj_d42-especificaci-n-t-cnica-y-funcional-integral-del-editor-m-vil-2.5d
+Especificación técnica y funcional completa para un editor móvil 2.5D basado en PixiJS/TypeScript. El documento incluye análisis detallado de cinco imágenes de referencia, arquitectura del motor, sistema de comportamientos (13 tipos), mecánicas de combate con habilidades físicas/especiales/estado, gestión de proyectos/escenas/capas/timeline, contro
